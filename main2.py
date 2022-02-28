@@ -74,16 +74,14 @@ def test(username: str = Body(...), password: str = Body(...)):
         (username,),
         DBAction.fetchone,
         )
-    if resp == None:
-        return db_action(
-            '''
-                insert into users (username, password) values (?, ?)
-            ''',
-            (username, password),
-            DBAction.commit,
-        )
-    else:
+    if resp:
         return "Error"
-
+    return db_action(
+        '''
+            insert into users (username, password) values (?, ?)
+        ''',
+        (username, password),
+        DBAction.commit,
+    )
 
 uvicorn.run(app)
