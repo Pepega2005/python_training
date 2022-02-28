@@ -67,13 +67,23 @@ def login(username: str = Body(...), password: str = Body(...)):
 
 @app.post('/reg')
 def test(username: str = Body(...), password: str = Body(...)):
-    return db_action(
+    resp = db_action(
         '''
-            insert into users (username, password) values (?, ?)
+            select * from users where username = ?
         ''',
-        (username, password),
-        DBAction.commit,
-    )
+        (username,),
+        DBAction.fetchone,
+        )
+    if resp == None:
+        return db_action(
+            '''
+                insert into users (username, password) values (?, ?)
+            ''',
+            (username, password),
+            DBAction.commit,
+        )
+    else:
+        return "Error"
 
 
 uvicorn.run(app)
