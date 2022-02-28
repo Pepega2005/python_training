@@ -66,12 +66,12 @@ def login(username: str = Body(...), password: str = Body(...)):
 
 
 @app.post('/reg')
-def test(un: str = Body(...), pw: str = Body(...)):
+def test(username: str = Body(...), password: str = Body(...)):
     return db_action(
         '''
-            insert into users (username, password) values (un, pw)
+            insert into users (username, password) values (?, ?)
         ''',
-        (un, pw),
+        (username, password),
         DBAction.commit,
     )
 
