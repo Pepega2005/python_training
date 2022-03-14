@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The best site</title>
+</head>
+<body>
+    <input type="text" id="login">
+    <input type="text" id="password">
+    <button id="do_login" type="button" onclick="submit_fore()">Enter</button>
+
+    <script>
+        async function submit_fore() {
+            let login = document.getElementById('login')
+            console.log(login.value)
+            let password = document.getElementById('login')
+            console.log(password.value)
+
+            let resp = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: login.value,
+                    password: password.value,
+                })
+            })
+            let data = await resp.json()
+            console.log(data)
+        }
+    </script>
+</body>
+</html>
