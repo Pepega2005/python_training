@@ -79,6 +79,12 @@ def index():
         return HTMLResponse(f.read())
 
 
+@app.get('/register')
+def index():
+    with open('registration.html', 'r') as f:
+        return HTMLResponse(f.read())
+
+
 @app.post('/login')
 def login(username: str = Body(...), password: str = Body(...)):
     user = db_action(
@@ -116,14 +122,17 @@ def test(username: str = Body(...), password: str = Body(...)):
             detail='User already exists'
         )
 
-
-    return db_action(
+    db_action(
         '''
             insert into users (username, password) values (?, ?)
         ''',
         (username, password),
         DBAction.commit,
     )
+
+    return {
+        'message': 'Successful registration'
+    }
 
 if __name__ == '__main__':
     uvicorn.run('main:app', reload=True)
