@@ -2,26 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Registration</title>
+    <title>Login</title>
 </head>
 <body>
     <input type="text" id="login">
     <input type="text" id="password">
-    <input type="text" id="check_password">
     <button id="do_login" type="button" onclick="submit_fore()">Enter</button>
 
     <script>
         async function submit_fore() {
             let login = document.getElementById('login')
+            console.log(login.value)
             let password = document.getElementById('password')
-            let check_password = document.getElementById('check_password')
+            console.log(password.value)
 
-            if (password.value != check_password.value) {
-                alert("Password doesn't match")
-                return
-            }
-
-            let resp = await fetch('/api/reg', {
+            let resp = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -29,22 +24,15 @@
                 body: JSON.stringify({
                     username: login.value,
                     password: password.value,
-                    check_password: check_password.value,
                 })
             })
             let data = await resp.json()
+            let token = data['token']
 
-            if (resp.status == 400) {
-                alert(data['message'])
-                return
-            }
+            console.log(token)
+            localStorage.setItem('token', token)
 
-            if (resp.status != 200) {
-                alert('Error')
-                return
-            }
-
-            window.location = '/login'
+            window.location = '/'
         }
     </script>
 </body>

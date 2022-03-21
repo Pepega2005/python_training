@@ -5,30 +5,19 @@
     <title>The best site</title>
 </head>
 <body>
-    <input type="text" id="login">
-    <input type="text" id="password">
-    <button id="do_login" type="button" onclick="submit_fore()">Enter</button>
-
     <script>
-        async function submit_fore() {
-            let login = document.getElementById('login')
-            console.log(login.value)
-            let password = document.getElementById('password')
-            console.log(password.value)
-
-            let resp = await fetch('/api/login', {
-                method: 'POST',
+        async function main() {
+            let token = localStorage.getItem('token')
+            console.log(token)
+            let resp = await fetch('/api/ping', {
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Authorization': token
                 },
-                body: JSON.stringify({
-                    username: login.value,
-                    password: password.value,
-                })
             })
             let data = await resp.json()
             console.log(data)
         }
+        main()
     </script>
 </body>
 </html>

@@ -78,14 +78,27 @@ def send_html(name: str):
         return HTMLResponse(f.read())
 
 
+@app.get('/')
+def index():
+    return send_html('index')
+
+
 @app.get('/login')
 def login_page():
-    return send_html('index')
+    return send_html('login')
 
 
 @app.get('/register')
 def register_page():
     return send_html('registration')
+
+
+@app.get('/api/ping')
+def ping(user: list = Depends(get_user)):
+    return {
+        'response': 'Pong',
+        'username': user[1],
+    }
 
 
 @app.post('/api/login')
@@ -103,7 +116,6 @@ def login(username: str = Body(...), password: str = Body(...)):
             detail='User not found'
         )
 
-
     token = jwt.encode({'id': user[0]}, config.SECRET, algorithm='HS256')
     return {
         'token': token
@@ -111,13 +123,7 @@ def login(username: str = Body(...), password: str = Body(...)):
 
 
 @app.post('/api/reg')
-def test(username: str = Body(...), password: str = Body(...), check_password: str = Body(...)):
-    if check_password != password:
-        raise HTTPException(
-            status_code=400,
-            detail="Password doesn't match"
-        )
-
+def reg(username: str = Body(...), password: str = Body(...)):
     resp = db_action(
         '''
             select * from users where username = ?
@@ -142,6 +148,7 @@ def test(username: str = Body(...), password: str = Body(...), check_password: s
     return {
         'message': 'Successful registration'
     }
+
 
 if __name__ == '__main__':
     uvicorn.run('main:app', reload=True)
