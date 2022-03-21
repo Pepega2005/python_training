@@ -73,19 +73,22 @@ def get_user(authorization: str = Header(...)):
     return user[1]
 
 
-@app.get('/')
-def index():
-    with open('index.html', 'r') as f:
+def send_html(name: str):
+    with open(f'html/{name}.html') as f:
         return HTMLResponse(f.read())
+
+
+@app.get('/login')
+def login_page():
+    return send_html('index')
 
 
 @app.get('/register')
-def index():
-    with open('registration.html', 'r') as f:
-        return HTMLResponse(f.read())
+def register_page():
+    return send_html('registration')
 
 
-@app.post('/login')
+@app.post('/api/login')
 def login(username: str = Body(...), password: str = Body(...)):
     user = db_action(
         '''
@@ -107,8 +110,14 @@ def login(username: str = Body(...), password: str = Body(...)):
     }
 
 
-@app.post('/reg')
-def test(username: str = Body(...), password: str = Body(...)):
+@app.post('/api/reg')
+def test(username: str = Body(...), password: str = Body(...), check_password: str = Body(...)):
+    if check_password != password:
+        raise HTTPException(
+            status_code=400,
+            detail="Password doesn't match"
+        )
+
     resp = db_action(
         '''
             select * from users where username = ?

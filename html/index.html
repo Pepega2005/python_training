@@ -13,10 +13,10 @@
         async function submit_fore() {
             let login = document.getElementById('login')
             console.log(login.value)
-            let password = document.getElementById('login')
+            let password = document.getElementById('password')
             console.log(password.value)
 
-            let resp = await fetch('/login', {
+            let resp = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
