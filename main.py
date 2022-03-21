@@ -70,7 +70,7 @@ def get_user(authorization: str = Header(...)):
         (user_id,),
         DBAction.fetchone,
     )
-    return user[1]
+    return user
 
 
 def send_html(name: str):
