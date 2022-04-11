@@ -1,40 +1,17 @@
-from enum import Enum, auto
+import sqlite3
 
 import jose.exceptions
 import uvicorn
 from fastapi import FastAPI, Body, Header, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import HTMLResponse
-import sqlite3
 from jose import jwt
+
 import config
+from utils import db_action, DBAction, run_code
+from task_checker import Task
 
 app = FastAPI()
-
-
-class DBAction(Enum):
-    fetchone = auto()
-    fetchall = auto()
-    commit = auto()
-
-
-def db_action(sql: str, args: tuple, action: DBAction):
-    conn = sqlite3.connect('db.sqlite')
-    cursor = conn.cursor()
-
-    cursor.execute(sql, args)
-    if action == DBAction.fetchone:
-        result = cursor.fetchone()
-    elif action == DBAction.fetchall:
-        result = cursor.fetchall()
-    elif action == DBAction.commit:
-        conn.commit()
-        result = None
-
-    cursor.close()
-    conn.close()
-
-    return result
 
 
 @app.on_event('startup')
@@ -49,6 +26,14 @@ def create_db():
             password varchar not null
         );
     ''')
+    cursor.execute('''
+        create table if not exists tasks (
+            id integer primary key,
+            name varchar not null,
+            description varchar,
+            output varchar not null
+        );
+    ''')
 
     cursor.close()
     conn.close()
@@ -60,7 +45,7 @@ def get_user(authorization: str = Header(...)):
     except jose.exceptions.JWTError:
         raise HTTPException(
             status_code=400,
-            detail='Incorrect token'
+            detail='Неверный токен'
         )
 
     user = db_action(
@@ -74,7 +59,7 @@ def get_user(authorization: str = Header(...)):
 
 
 def send_html(name: str):
-    with open(f'html/{name}.html') as f:
+    with open(f'html/{name}.html', 'r', encoding='utf-8') as f:
         return HTMLResponse(f.read())
 
 
@@ -82,6 +67,9 @@ def send_html(name: str):
 def index():
     return send_html('index')
 
+@app.get('/tasks')
+def tasks():
+    return send_html('tasks')
 
 @app.get('/login')
 def login_page():
@@ -90,7 +78,7 @@ def login_page():
 
 @app.get('/register')
 def register_page():
-    return send_html('registration')
+    return send_html('register')
 
 
 @app.get('/api/ping')
@@ -98,6 +86,16 @@ def ping(user: list = Depends(get_user)):
     return {
         'response': 'Pong',
         'username': user[1],
+    }
+
+
+@app.post('/api/execute')
+def execute(
+        user: list = Depends(get_user),
+        code: str = Body(..., embed=True),
+):
+    return {
+        'result': run_code(code),
     }
 
 
@@ -113,7 +111,7 @@ def login(username: str = Body(...), password: str = Body(...)):
     if not user:
         raise HTTPException(
             status_code=404,
-            detail='User not found'
+            detail='Пользователь не найден'
         )
 
     token = jwt.encode({'id': user[0]}, config.SECRET, algorithm='HS256')
@@ -122,19 +120,19 @@ def login(username: str = Body(...), password: str = Body(...)):
     }
 
 
-@app.post('/api/reg')
-def reg(username: str = Body(...), password: str = Body(...)):
-    resp = db_action(
+@app.post('/api/register')
+def register(username: str = Body(...), password: str = Body(...)):
+    user = db_action(
         '''
             select * from users where username = ?
         ''',
         (username,),
         DBAction.fetchone,
-        )
-    if resp:
+    )
+    if user:
         raise HTTPException(
             status_code=400,
-            detail='User already exists'
+            detail='Пользователь уже существует'
         )
 
     db_action(
@@ -146,7 +144,22 @@ def reg(username: str = Body(...), password: str = Body(...)):
     )
 
     return {
-        'message': 'Successful registration'
+        'message': 'Успешная регистрация'
+    }
+
+@app.get('/api/tasks')
+def get_tasks(user: list = Depends(get_user)):
+    return Task.all()
+
+@app.post('/api/send_task')
+def send_task(user: list = Depends(get_user),
+              task_id: int = Body(..., embed=True),
+              code: str = Body(..., embed=True),
+              ) -> bool:
+    task = Task.get(task_id)
+    result = Task.check_solution(code)
+    return {
+        'result': result
     }
 
 

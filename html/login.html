@@ -1,16 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Крутой сайт</title>
 </head>
 <body>
     <input type="text" id="login">
     <input type="text" id="password">
-    <button id="do_login" type="button" onclick="submit_fore()">Enter</button>
+    <button id="do_login" type="button" onclick="submit_form()">
+        Войти
+    </button>
 
     <script>
-        async function submit_fore() {
+        async function submit_form() {
             let login = document.getElementById('login')
             console.log(login.value)
             let password = document.getElementById('password')
@@ -27,9 +29,19 @@
                 })
             })
             let data = await resp.json()
+
+            if (resp.status == 404) {
+                alert(data['detail'])
+                return
+            }
+
+            if (resp.status != 200) {
+                alert('Что-то пошло не так')
+                return
+            }
+
             let token = data['token']
 
-            console.log(token)
             localStorage.setItem('token', token)
 
             window.location = '/'

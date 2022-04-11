@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <ol id="task_list"></ol>
+    <h1 id="header">Task 3</h1>
+    <p id="description">
+        Описание
+    </p>
+
+    <textarea id="code">print('Hello, world!')</textarea>
+    <br>
+    <button id="execute" onclick="execute()">Выполнить код</button>
+    <br>
+    <textarea id="result" readonly></textarea>
+
+    <script>
+        let tasks
+        function load_task(task_id) {
+            let task
+            for (let i = 0; i < tasks.length; i++) {
+                if (tasks[i]['id'] == task_id){
+                    task = tasks[i]
+                }
+            }
+            let header = document.getElementById('header')
+            let description = document.getElementById('description')
+            header.textContent = task(name)
+            description.textContent = task('description')
+        }
+        async function load_tasks() {
+            let token = localStorage.getItem('token')
+            let resp = await fetch('/api/tasks', {
+                method: 'GET',
+                headers: {
+                    'Authorization': token,
+                }
+            })
+            let tasks = await resp.json()
+
+            let task_list = document.getElementById('task_list')
+            for (let i = 0; i < tasks.length; i++) {
+                let element = document.createElement(('li'))
+                let task = tasks[i]
+                element.textContent = task['name']
+                element.onclick = () => load_task(task['id'])
+                task_list.appendChild(element)
+            }
+        }
+        load_tasks()
+    </script>
+</body>
+</html>
