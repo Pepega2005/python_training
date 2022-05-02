@@ -31,15 +31,18 @@ def db_action(sql: str, args: tuple, action: DBAction):
     return result
 
 
-def run_code(code: str):
+def run_code(code: str, program_input: str):
     filename = ''.join(random.choices(string.ascii_letters, k=10))
     filename = f'codes/{filename}.py'
     with open(filename, 'w') as f:
         f.write(code)
     process = subprocess.Popen(
         ['python', filename],
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
     )
+    process.stdin.write(program_input.encode())
+    process.stdin.flush()
     process.wait()
     stdout = process.stdout.read().decode()
     os.remove(filename)

@@ -19,17 +19,38 @@
 
     <script>
         let tasks
-        function load_task(task_id) {
+        let current_task_id
+        async function execute() {
+            let code = document.getElementById('code').value
+            let token = localStorage.getItem('token')
+            let resp = await fetch('/api/send_task', {
+                method: 'POST',
+                headers: {
+                    'Authorization': token,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    task_id: current_task_id,
+                    code: code,
+                }),
+            })
+            let data = await resp.json()
+
+            document.getElementById('result').value = data['result']
+        }
+
+        function load_task(new_task_id) {
+            current_task_id = new_task_id
             let task
             for (let i = 0; i < tasks.length; i++) {
-                if (tasks[i]['id'] == task_id){
+                if (tasks[i]['id'] == new_task_id){
                     task = tasks[i]
                 }
             }
             let header = document.getElementById('header')
             let description = document.getElementById('description')
-            header.textContent = task(name)
-            description.textContent = task('description')
+            header.textContent = task['name']
+            description.textContent = task['description']
         }
         async function load_tasks() {
             let token = localStorage.getItem('token')
@@ -39,7 +60,7 @@
                     'Authorization': token,
                 }
             })
-            let tasks = await resp.json()
+            tasks = await resp.json()
 
             let task_list = document.getElementById('task_list')
             for (let i = 0; i < tasks.length; i++) {

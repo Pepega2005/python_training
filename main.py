@@ -31,7 +31,7 @@ def create_db():
             id integer primary key,
             name varchar not null,
             description varchar,
-            output varchar not null
+            tests varchar not null
         );
     ''')
 
@@ -153,13 +153,19 @@ def get_tasks(user: list = Depends(get_user)):
 
 @app.post('/api/send_task')
 def send_task(user: list = Depends(get_user),
-              task_id: int = Body(..., embed=True),
-              code: str = Body(..., embed=True),
-              ) -> bool:
+    task_id: int = Body(..., embed=True),
+    code: str = Body(..., embed=True),
+):
     task = Task.get(task_id)
-    result = Task.check_solution(code)
+    result = task.check_solution(code)
+    if not result['status']:
+        return {
+            'result': f'Правильный ответ {result["expected_output"]}\n'
+                      f'Ответ программы {result["user_output"]}\n'
+                      f'Пройдено тестов {result["tests_completed"]}\n'
+        }
     return {
-        'result': result
+        'result': 'Тесты пройдены'
     }
 
 
